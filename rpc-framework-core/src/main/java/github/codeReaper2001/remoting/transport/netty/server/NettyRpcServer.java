@@ -1,5 +1,7 @@
 package github.codeReaper2001.remoting.transport.netty.server;
 
+import github.codeReaper2001.remoting.transport.netty.codec.RpcMessageDecoder;
+import github.codeReaper2001.remoting.transport.netty.codec.RpcMessageEncoder;
 import github.codeReaper2001.utils.RuntimeUtil;
 import github.codeReaper2001.utils.concurrent.threadpool.ThreadPoolFactoryUtil;
 import io.netty.bootstrap.ServerBootstrap;
@@ -48,11 +50,13 @@ public class NettyRpcServer {
                             ChannelPipeline pipeline = ch.pipeline();
                             // 添加日志打印
                             pipeline.addLast(new LoggingHandler(LogLevel.INFO));
+                            // 编码器和解码器
+                            pipeline.addLast(new RpcMessageEncoder());
+                            pipeline.addLast(new RpcMessageDecoder());
                             pipeline.addLast(new ChannelInboundHandlerAdapter(){
                                 @Override
                                 public void channelRead(ChannelHandlerContext ctx, Object msg) {
-                                    System.out.println("接收到信息");
-                                    log.info("{}", msg);
+                                    log.info("{}\n{}", msg.getClass().getName(), msg);
                                     ctx.writeAndFlush(msg);
                                 }
                             });

@@ -1,0 +1,3 @@
+kyro=github.codeReaper2001.serialize.kyro.KryoSerializer
+protostuff=github.codeReaper2001.serialize.protostuff.ProtostuffSerializer
+hessian=github.codeReaper2001.serialize.hessian.HessianSerializer

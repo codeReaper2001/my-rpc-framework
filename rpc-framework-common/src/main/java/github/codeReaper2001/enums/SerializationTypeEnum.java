@@ -1,5 +1,8 @@
 package github.codeReaper2001.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum SerializationTypeEnum {
 
     KYRO((byte) 0x01, "kyro"),
