@@ -1,5 +1,9 @@
 package github.codeReaper2001.remoting.transport.netty.server;
 
+import github.codeReaper2001.config.RpcServiceConfig;
+import github.codeReaper2001.factory.SingletonFactory;
+import github.codeReaper2001.provider.ServiceProvider;
+import github.codeReaper2001.provider.impl.ZkServiceProviderImpl;
 import github.codeReaper2001.remoting.transport.netty.codec.RpcMessageDecoder;
 import github.codeReaper2001.remoting.transport.netty.codec.RpcMessageEncoder;
 import github.codeReaper2001.utils.RuntimeUtil;
@@ -21,6 +25,16 @@ import java.net.InetAddress;
 public class NettyRpcServer {
 
     public static final int PORT = 8081;
+
+    // 从单例容器中获取ServiceProvider，用于发布服务
+    private final ServiceProvider serviceProvider = SingletonFactory.getInstance(ZkServiceProviderImpl.class);
+
+    public void registerService(RpcServiceConfig rpcServiceConfig) {
+        // 发布服务
+        // ① 将服务对象保存到内存中，便于调用
+        // ② 服务名/{ip}:{port} 信息添加到注册中心，方便rpc客户端寻找服务
+        serviceProvider.publishService(rpcServiceConfig);
+    }
 
     /*
     * 启动Rpc服务器方法
@@ -53,13 +67,8 @@ public class NettyRpcServer {
                             // 编码器和解码器
                             pipeline.addLast(new RpcMessageEncoder());
                             pipeline.addLast(new RpcMessageDecoder());
-                            pipeline.addLast(new ChannelInboundHandlerAdapter(){
-                                @Override
-                                public void channelRead(ChannelHandlerContext ctx, Object msg) {
-                                    log.info("{}\n{}", msg.getClass().getName(), msg);
-                                    ctx.writeAndFlush(msg);
-                                }
-                            });
+                            // 添加Rpc请求处理器，由serviceHandlerGroup线程池中的进行处理
+                            pipeline.addLast(serviceHandlerGroup, new NettyRpcServerHandler());
                         }
                     });
 
