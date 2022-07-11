@@ -21,9 +21,9 @@ public class NettyRpcClientHandler extends ChannelInboundHandlerAdapter {
     private final UnprocessedRequests unprocessedRequests;
     private final NettyRpcClient nettyRpcClient;
 
-    public NettyRpcClientHandler(NettyRpcClient nettyRpcClient) {
+    public NettyRpcClientHandler() {
         this.unprocessedRequests = SingletonFactory.getInstance(UnprocessedRequests.class);
-        this.nettyRpcClient = nettyRpcClient;
+        this.nettyRpcClient = SingletonFactory.getInstance(NettyRpcClient.class);
     }
 
     @Override
@@ -58,7 +58,7 @@ public class NettyRpcClientHandler extends ChannelInboundHandlerAdapter {
                 Channel channel = nettyRpcClient.getChannel((InetSocketAddress) ctx.channel().remoteAddress());
                 // 构造和发送心跳包
                 RpcMessage rpcMessage = RpcMessage.builder()
-                        .codec(SerializationTypeEnum.PROTOSTUFF.getCode())
+                        .codec(SerializationTypeEnum.HESSIAN.getCode())
                         .compress(CompressTypeEnum.GZIP.getCode())
                         .messageType(RpcConstants.HEARTBEAT_REQUEST_TYPE)
                         .data(RpcConstants.PONG).build();

@@ -42,7 +42,7 @@ public class NettyRpcServerHandler extends ChannelInboundHandlerAdapter {
                 RpcMessage inMessage = (RpcMessage)msg;
                 byte messageType = inMessage.getMessageType();
                 RpcMessage outMessage = new RpcMessage();
-                outMessage.setCodec(SerializationTypeEnum.PROTOSTUFF.getCode());
+                outMessage.setCodec(SerializationTypeEnum.HESSIAN.getCode());
                 outMessage.setCompress(CompressTypeEnum.GZIP.getCode());
 
                 // 判断是否是心跳包

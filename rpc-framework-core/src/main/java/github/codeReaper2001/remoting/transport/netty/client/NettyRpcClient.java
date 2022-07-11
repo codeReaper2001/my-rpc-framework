@@ -27,7 +27,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class NettyRpcClient implements RpcRequestTransport {
+public final class NettyRpcClient implements RpcRequestTransport {
     // 服务发现器
     private final ServiceDiscovery serviceDiscovery;
     // 未处理的rpc请求
@@ -43,9 +43,6 @@ public class NettyRpcClient implements RpcRequestTransport {
         // 读写线程池
         eventLoopGroup = new NioEventLoopGroup();
         bootstrap = new Bootstrap();
-
-        // 创建收到RpcMessage后的处理器，并添加
-        NettyRpcClientHandler nettyRpcClientHandler = new NettyRpcClientHandler(this);
         bootstrap.group(eventLoopGroup)
                 .channel(NioSocketChannel.class)
                 .handler(new LoggingHandler(LogLevel.INFO))
@@ -60,7 +57,7 @@ public class NettyRpcClient implements RpcRequestTransport {
                         pipeline.addLast(new IdleStateHandler(0, 5, 0, TimeUnit.SECONDS));
                         pipeline.addLast(new RpcMessageEncoder());
                         pipeline.addLast(new RpcMessageDecoder());
-                        pipeline.addLast(nettyRpcClientHandler);
+                        pipeline.addLast(new NettyRpcClientHandler());
                     }
                 });
         this.serviceDiscovery = ExtensionLoader.getExtensionLoader(ServiceDiscovery.class)
@@ -104,7 +101,7 @@ public class NettyRpcClient implements RpcRequestTransport {
             unprocessedRequests.put(rpcRequest.getRequestId(), resultFuture);
             // 构造发送的RpcMessage，由于编码器会填充requestId字段，故这里不需要填
             RpcMessage rpcMessage = RpcMessage.builder()
-                    .codec(SerializationTypeEnum.PROTOSTUFF.getCode())
+                    .codec(SerializationTypeEnum.HESSIAN.getCode())
                     .compress(CompressTypeEnum.GZIP.getCode())
                     .messageType(RpcConstants.REQUEST_TYPE)
                     .data(rpcRequest).build();
