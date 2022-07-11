@@ -14,8 +14,8 @@ public class TestController {
     private MyService myService;
 
     public void test() {
-        int threadNum = 100000;
-        int n = 100;
+        int threadNum = 10;
+        int n = 100000;
         CountDownLatch countDownLatch = new CountDownLatch(threadNum);
 
         long startTime = System.currentTimeMillis();
