@@ -1,10 +1,12 @@
 package github.codeReaper2001.remoting.transport;
 
+import github.codeReaper2001.extension.SPI;
 import github.codeReaper2001.remoting.dto.RpcRequest;
 import github.codeReaper2001.remoting.dto.RpcResponse;
 
 import java.util.concurrent.CompletableFuture;
 
+@SPI
 public interface RpcRequestTransport {
     /**
      * send rpc request to server and get result
