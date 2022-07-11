@@ -68,23 +68,27 @@ public class RpcMessageDecoder extends LengthFieldBasedFrameDecoder {
     protected Object decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
         // 使用父类的功能实现字节流按帧切割（解决粘包半包问题）
         // 这里得到的decoded是完整的数据帧
-        ByteBuf frame = (ByteBuf) super.decode(ctx, in);
-        if (frame.readableBytes() >= RpcConstants.TOTAL_LENGTH) {
-            // 存在bodyBytes
-            try {
-                return decodeFrame(frame);
-            } catch (Exception e) {
-                log.error("Decode frame error!", e);
-                throw e;
-            } finally {
-                // 手动释放直接内存
-                frame.release();
+        Object decoded = super.decode(ctx, in);
+        if (decoded instanceof ByteBuf) {
+            ByteBuf frame = (ByteBuf) decoded;
+            if (frame.readableBytes() >= RpcConstants.TOTAL_LENGTH) {
+                // 存在bodyBytes
+                try {
+                    return decodeFrame(frame);
+                } catch (Exception e) {
+                    log.error("Decode frame error!", e);
+                    throw e;
+                } finally {
+                    // 手动释放直接内存
+                    frame.release();
+                }
             }
+
         }
-        return frame;
+        return decoded;
     }
 
-    // 真正的解码逻辑
+
     private Object decodeFrame(ByteBuf in) {
         // 检查魔数
         checkMagicNumber(in);
@@ -110,12 +114,10 @@ public class RpcMessageDecoder extends LengthFieldBasedFrameDecoder {
             rpcMessage.setData(RpcConstants.PING);
             return rpcMessage;
         }
-        // 心跳包响应
         if (messageType == RpcConstants.HEARTBEAT_RESPONSE_TYPE) {
             rpcMessage.setData(RpcConstants.PONG);
             return rpcMessage;
         }
-        // 帧信息体长度
         int bodyLength = fullLength - RpcConstants.HEAD_LENGTH;
         if (bodyLength > 0) {
             // 解析信息体内容
@@ -131,7 +133,6 @@ public class RpcMessageDecoder extends LengthFieldBasedFrameDecoder {
             log.info("codec name: [{}] ", codecName);
             Serializer serializer = ExtensionLoader.getExtensionLoader(Serializer.class)
                     .getExtension(codecName);
-            // 内容有两种可能，分两种情况反序列化
             if (messageType == RpcConstants.REQUEST_TYPE) {
                 RpcRequest data = serializer.deserialize(bodyBuf, RpcRequest.class);
                 rpcMessage.setData(data);
