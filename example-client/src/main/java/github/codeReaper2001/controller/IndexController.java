@@ -5,19 +5,20 @@ import github.codeReaper2001.MyService;
 import github.codeReaper2001.annotation.RpcReference;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Component
 @Slf4j
+@RestController
 public class IndexController {
 
     @RpcReference(version = "version1", group = "test")
     private MyService myService;
 
-    public void index() {
-        for (int i = 0; i < 5; i++) {
-            String result = myService.hello(new Data("jack" + i, 10 + i));
-            log.info("第{}次，调用结果：{}", i, result);
-        }
+    @GetMapping("/index")
+    public String index() {
+        return myService.hello(new Data("jack", 10));
     }
 
 }
