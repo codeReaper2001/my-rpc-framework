@@ -1,15 +1,13 @@
 package github.codeReaper2001;
 
-import github.codeReaper2001.config.ClientConfig;
-import github.codeReaper2001.controller.IndexController;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+@SpringBootApplication
 public class NettyClientMain {
 
     public static void main(String[] args) {
-        AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(ClientConfig.class);
-        IndexController indexController = applicationContext.getBean(IndexController.class);
-        indexController.index();
+        SpringApplication.run(NettyClientMain.class, args);
     }
 
 }

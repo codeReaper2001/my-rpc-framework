@@ -2,10 +2,10 @@ package github.codeReaper2001.config;
 
 import github.codeReaper2001.spring.RpcReferenceFieldBeanPostProcessor;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 
-// 扫描创建@Component bean
-@ComponentScan(basePackages = "github.codeReaper2001.controller")
+
+@Configuration
 public class ClientConfig {
     @Bean
     public RpcReferenceFieldBeanPostProcessor getRpcReferenceFieldBeanPostProcessor() {
