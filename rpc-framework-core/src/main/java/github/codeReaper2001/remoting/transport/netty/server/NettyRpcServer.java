@@ -43,7 +43,6 @@ public class NettyRpcServer {
     * */
     @SneakyThrows
     public void start() {
-        String host = InetAddress.getLocalHost().getHostAddress();
         // boss EventGroup 只有一个线程，负责连接，生成 NioSocketChannel，分发给workerGroup中的线程处理
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         // worker EventGroup，这个线程池的线程数默认为cpu核心数的两倍，负责网络字节数据读写

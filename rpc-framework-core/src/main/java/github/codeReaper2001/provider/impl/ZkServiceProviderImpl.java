@@ -7,9 +7,9 @@ import github.codeReaper2001.extension.ExtensionLoader;
 import github.codeReaper2001.provider.ServiceProvider;
 import github.codeReaper2001.registry.ServiceRegistry;
 import github.codeReaper2001.remoting.transport.netty.server.NettyRpcServer;
+import github.codeReaper2001.utils.IPUtil;
 import lombok.extern.slf4j.Slf4j;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.Map;
@@ -56,7 +56,7 @@ public class ZkServiceProviderImpl implements ServiceProvider {
     @Override
     public void publishService(RpcServiceConfig rpcServiceConfig) {
         try {
-            String host = InetAddress.getLocalHost().getHostAddress();
+            String host = IPUtil.getLocalHostIPStr();
             // 先将服务添加到map容器上
             this.addService(rpcServiceConfig);
             // 然后发布到注册中心(服务名，ip地址，即告诉其他rpc客户端自己这里有该服务)
