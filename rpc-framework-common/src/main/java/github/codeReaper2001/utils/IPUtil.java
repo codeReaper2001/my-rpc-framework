@@ -2,6 +2,7 @@ package github.codeReaper2001.utils;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 
@@ -13,48 +14,66 @@ public class IPUtil {
         if (hostIP == null) {
             synchronized (IPUtil.class) {
                 if (hostIP == null) {
-                    hostIP = getLocalHostIP();
+                    hostIP = getLocalIpAddress();
                 }
             }
         }
         return hostIP.getHostAddress();
     }
 
-    static private InetAddress getLocalHostIP() throws UnknownHostException {
+    private final static byte INVALID_MACS[][] = {
+            {0x00, 0x05, 0x69},             // VMWare
+            {0x00, 0x1C, 0x14},             // VMWare
+            {0x00, 0x0C, 0x29},             // VMWare
+            {0x00, 0x50, 0x56},             // VMWare
+            {0x08, 0x00, 0x27},             // Virtualbox
+            {0x0A, 0x00, 0x27},             // Virtualbox
+            {0x00, 0x03, (byte) 0xFF},       // Virtual-PC
+            {0x00, 0x15, 0x5D}              // Hyper-V
+    };
+
+    public static boolean isVMMac(byte[] mac) {
+        if (null == mac) {
+            return false;
+        }
+
+        for (byte[] invalid : INVALID_MACS) {
+            if (invalid[0] == mac[0] && invalid[1] == mac[1] && invalid[2] == mac[2]) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static InetAddress getLocalIpAddress() throws UnknownHostException {
         try {
-            InetAddress candidateAddress = null;
-            // 遍历所有的网络接口
-            for (Enumeration ifaces = NetworkInterface.getNetworkInterfaces(); ifaces.hasMoreElements();) {
-                NetworkInterface iface = (NetworkInterface) ifaces.nextElement();
-                // 在所有的接口下再遍历IP
-                for (Enumeration inetAddrs = iface.getInetAddresses(); inetAddrs.hasMoreElements();) {
-                    InetAddress inetAddr = (InetAddress) inetAddrs.nextElement();
-                    if (!inetAddr.isLoopbackAddress()) {
-                        // 排除loopback类型地址
-                        if (inetAddr.isSiteLocalAddress()) {
-                            // 如果是site-local地址，就是它了
-                            return inetAddr;
-                        } else if (candidateAddress == null) {
-                            // site-local类型的地址未被发现，先记录候选地址
-                            candidateAddress = inetAddr;
-                        }
+            Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
+            while (networkInterfaces.hasMoreElements()) {
+                NetworkInterface ni = networkInterfaces.nextElement();
+
+                if (!ni.isUp() || ni.isLoopback() || ni.isVirtual()) {
+                    continue;
+                }
+
+                if (isVMMac(ni.getHardwareAddress())) {
+                    continue;
+                }
+
+
+                Enumeration<InetAddress> inetAddresses = ni.getInetAddresses();
+                while (inetAddresses.hasMoreElements()) {
+                    InetAddress inetAddress = inetAddresses.nextElement();
+                    if (inetAddress.isLinkLocalAddress()) {
+                        continue;
                     }
+
+                    return inetAddress;
                 }
             }
-            if (candidateAddress != null) {
-                return candidateAddress;
-            }
-            // 如果没有发现 non-loopback地址.只能用最次选的方案
-            InetAddress jdkSuppliedAddress = InetAddress.getLocalHost();
-            if (jdkSuppliedAddress == null) {
-                throw new UnknownHostException("The JDK InetAddress.getLocalHost() method unexpectedly returned null.");
-            }
-            return jdkSuppliedAddress;
-        } catch (Exception e) {
-            UnknownHostException unknownHostException = new UnknownHostException(
-                    "Failed to determine LAN address: " + e);
-            unknownHostException.initCause(e);
-            throw unknownHostException;
+        } catch (SocketException e) {
+            throw new UnknownHostException("获取本机IP地址失败。");
         }
+        throw new UnknownHostException("获取本机IP地址失败。");
     }
 }
